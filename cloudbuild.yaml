@@ -1,0 +1,23 @@
+steps:
+# 1. Build image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-central1-docker.pkg.dev/$(gcloud config get-value project)/app-repo/simple-app:latest', './simple-app']
+
+# 2️. Push image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'us-central1-docker.pkg.dev/$(gcloud config get-value project)/app-repo/simple-app:latest']
+
+# 3️. Deploy to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+    [
+      'run', 'deploy', 'simple-app-service',
+      '--image', 'us-central1-docker.pkg.dev/$(gcloud config get-value project)/app-repo/simple-app:latest',
+      '--region', 'us-central1',
+      '--platform', 'managed',
+      '--allow-unauthenticated'
+    ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
